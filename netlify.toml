@@ -1,0 +1,10 @@
+[build]
+  publish = "."
+  # Skip rebuilds when only content.json changed (saves build minutes)
+  ignore = "git diff --quiet HEAD^ HEAD -- . ':!content.json'"
+
+[functions]
+  directory = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
