@@ -14,7 +14,8 @@
 <script>
 (async function(){
   var KEY='grayco-site-content-v3';
-  var FN='/.netlify/functions/save-content';
+  var GET_FN='/.netlify/functions/get-content';
+  var SAVE_FN='/.netlify/functions/save-content';
 
   function toast(msg,color){
     var t=document.createElement('div');
@@ -24,10 +25,9 @@
     setTimeout(function(){t.remove();},6000);
   }
 
-  // Load latest content from GitHub (raw URL - no rate limits)
+  // Load latest content via Netlify function (bypasses all caching)
   try{
-    var url='https://raw.githubusercontent.com/grayco-cs/grayco-website/main/content.json?v='+Date.now();
-    var res=await fetch(url,{cache:'no-store'});
+    var res=await fetch(GET_FN,{cache:'no-store'});
     if(res.ok){
       var text=await res.text();
       try{
@@ -44,7 +44,7 @@
   Storage.prototype.setItem=function(k,v){
     _orig.call(this,k,v);
     if(k===KEY){
-      fetch(FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:v})})
+      fetch(SAVE_FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:v})})
       .then(async function(r){
         var data={};
         try{data=await r.json();}catch(e){}
