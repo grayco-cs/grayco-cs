@@ -3,12 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="description" content="GrayCo Construction Services — General Contractor in Bartlett, TN. Commercial construction, residential renovations, emergency water mitigation, insurance restoration, and expert project management across the Mid-South."/>
-<meta name="keywords" content="general contractor, Memphis TN, Bartlett TN, commercial construction, residential construction, water mitigation, insurance restoration, construction estimating, project management"/>
-<meta property="og:title" content="GrayCo Construction Services | General Contractor — Memphis, TN"/>
-<meta property="og:description" content="Full-service general contractor — commercial build-outs, residential renovations, water mitigation, and insurance restoration across the Mid-South."/>
-<meta property="og:type" content="website"/>
-<meta property="og:url" content="https://grayco-cs.com"/>
+<meta name="description" content="GrayCo Construction Services — General Contractor in Bartlett, TN."/>
 <title>GrayCo Construction Services | General Contractor | Memphis, TN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -16,59 +11,57 @@
 </head>
 <body>
 <div id="root"></div>
-
 <script>
-// GrayCo Cloud Sync — loads latest content from GitHub before the app starts,
-// and pushes every save to GitHub so all devices stay in sync.
-(async function () {
-  var KEY = 'grayco-site-content-v3';
-  var REPO_API = 'https://api.github.com/repos/grayco-cs/grayco-website/contents/content.json';
-  var SAVE_FN  = '/.netlify/functions/save-content';
+(async function(){
+  var KEY='grayco-site-content-v3';
+  var FN='/.netlify/functions/save-content';
 
-  // ── STEP 1: Load latest content from GitHub before app starts ──────────────
-  try {
-    var res = await fetch(REPO_API, {
-      headers: {
-        'Accept': 'application/vnd.github.v3.raw',
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
-      }
-    });
-    if (res.ok) {
-      var text = await res.text();
-      try {
-        var parsed = JSON.parse(text);
-        // Only replace local data if GitHub has real content (not just {})
-        if (parsed && Object.keys(parsed).length > 1) {
-          localStorage.setItem(KEY, text);
-        }
-      } catch (e) { /* ignore parse errors */ }
-    }
-  } catch (e) {
-    console.warn('[GrayCo] Could not load from cloud, using local data:', e.message);
+  function toast(msg,color){
+    var t=document.createElement('div');
+    t.innerText=msg;
+    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:'+color+';color:#fff;padding:10px 24px;border-radius:8px;font-family:sans-serif;font-size:14px;z-index:99999;box-shadow:0 2px 8px rgba(0,0,0,0.3);max-width:90vw;text-align:center';
+    document.body.appendChild(t);
+    setTimeout(function(){t.remove();},6000);
   }
 
-  // ── STEP 2: Intercept saves so they also push to GitHub ────────────────────
-  var _origSetItem = Storage.prototype.setItem;
-  Storage.prototype.setItem = function (k, v) {
-    _origSetItem.call(this, k, v);
-    if (k === KEY) {
-      fetch(SAVE_FN, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: v })
-      }).then(function (r) {
-        if (!r.ok) console.warn('[GrayCo] Cloud save returned error:', r.status);
-        else console.log('[GrayCo] Saved to cloud successfully');
-      }).catch(function (e) {
-        console.warn('[GrayCo] Cloud save failed (site still saved locally):', e.message);
-      });
+  // Load latest content from GitHub (raw URL - no rate limits)
+  try{
+    var url='https://raw.githubusercontent.com/grayco-cs/grayco-website/main/content.json?v='+Date.now();
+    var res=await fetch(url,{cache:'no-store'});
+    if(res.ok){
+      var text=await res.text();
+      try{
+        var p=JSON.parse(text);
+        if(p&&Object.keys(p).length>1){
+          localStorage.setItem(KEY,text);
+        }
+      }catch(e){}
+    }
+  }catch(e){console.warn('[GrayCo] Cloud load failed:',e.message);}
+
+  // Intercept saves to also push to cloud
+  var _orig=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(k,v){
+    _orig.call(this,k,v);
+    if(k===KEY){
+      fetch(FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:v})})
+      .then(async function(r){
+        var data={};
+        try{data=await r.json();}catch(e){}
+        if(r.ok&&data.ok){
+          toast('☁️ Saved to cloud!','#2e7d32');
+        }else{
+          var reason=data.reason||data.error||('HTTP '+r.status);
+          toast('❌ Cloud error: '+reason,'#c62828');
+        }
+      }).catch(function(e){toast('❌ Network error: '+e.message,'#c62828');});
     }
   };
 
-  // ── STEP 3: Now start the app ──────────────────────────────────────────────
-  var s = document.createElement('script');
-  s.type = 'module';
-  s.src = './assets/index-5ObGMj_N.js';
+  // Start the app
+  var s=document.createElement('script');
+  s.type='module';
+  s.src='./assets/index-5ObGMj_N.js';
   document.body.appendChild(s);
 })();
 </script>
