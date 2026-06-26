@@ -1,13 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My React App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="description" content="GrayCo Construction Services — General Contractor in Bartlett, TN. Commercial construction, residential renovations, emergency water mitigation, insurance restoration, and expert project management across the Mid-South."/>
+<meta name="keywords" content="general contractor, Memphis TN, Bartlett TN, commercial construction, residential construction, water mitigation, insurance restoration, construction estimating, project management"/>
+<meta property="og:title" content="GrayCo Construction Services | General Contractor — Memphis, TN"/>
+<meta property="og:description" content="Full-service general contractor — commercial build-outs, residential renovations, water mitigation, and insurance restoration across the Mid-South."/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://grayco-cs.com"/>
+<title>GrayCo Construction Services | General Contractor | Memphis, TN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body>
-    <div id="root"></div>
-    <script src="index.js"></script>
+<div id="root"></div>
+
+<script>
+// GrayCo Cloud Sync — loads latest content from GitHub before the app starts,
+// and pushes every save to GitHub so all devices stay in sync.
+(async function () {
+  var KEY = 'grayco-site-content-v3';
+  var REPO_API = 'https://api.github.com/repos/grayco-cs/grayco-website/contents/content.json';
+  var SAVE_FN  = '/.netlify/functions/save-content';
+
+  // ── STEP 1: Load latest content from GitHub before app starts ──────────────
+  try {
+    var res = await fetch(REPO_API, {
+      headers: {
+        'Accept': 'application/vnd.github.v3.raw',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    });
+    if (res.ok) {
+      var text = await res.text();
+      try {
+        var parsed = JSON.parse(text);
+        // Only replace local data if GitHub has real content (not just {})
+        if (parsed && Object.keys(parsed).length > 1) {
+          localStorage.setItem(KEY, text);
+        }
+      } catch (e) { /* ignore parse errors */ }
+    }
+  } catch (e) {
+    console.warn('[GrayCo] Could not load from cloud, using local data:', e.message);
+  }
+
+  // ── STEP 2: Intercept saves so they also push to GitHub ────────────────────
+  var _origSetItem = Storage.prototype.setItem;
+  Storage.prototype.setItem = function (k, v) {
+    _origSetItem.call(this, k, v);
+    if (k === KEY) {
+      fetch(SAVE_FN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: v })
+      }).then(function (r) {
+        if (!r.ok) console.warn('[GrayCo] Cloud save returned error:', r.status);
+        else console.log('[GrayCo] Saved to cloud successfully');
+      }).catch(function (e) {
+        console.warn('[GrayCo] Cloud save failed (site still saved locally):', e.message);
+      });
+    }
+  };
+
+  // ── STEP 3: Now start the app ──────────────────────────────────────────────
+  var s = document.createElement('script');
+  s.type = 'module';
+  s.src = './assets/index-5ObGMj_N.js';
+  document.body.appendChild(s);
+})();
+</script>
 </body>
 </html>
